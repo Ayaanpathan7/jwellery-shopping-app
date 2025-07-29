@@ -3,6 +3,7 @@ import type { Product } from '@/lib/products';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { WishlistButton } from './wishlist-button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 
 type ProductCardProps = {
   product: Product;
@@ -10,16 +11,16 @@ type ProductCardProps = {
 
 export function ProductCard({ product }: ProductCardProps) {
   return (
-    <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card">
+    <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card h-full">
       <CardHeader className="p-0">
         <Dialog>
           <DialogTrigger asChild>
-            <div className="aspect-square w-full relative overflow-hidden cursor-zoom-in">
+            <div className="aspect-square w-full relative overflow-hidden cursor-zoom-in group">
               <Image
                 src={product.image}
                 alt={product.name}
                 fill
-                className="object-cover transition-transform duration-300 hover:scale-105"
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
                 data-ai-hint={product.aiHint}
               />
             </div>
@@ -37,7 +38,9 @@ export function ProductCard({ product }: ProductCardProps) {
         </Dialog>
       </CardHeader>
       <CardContent className="p-4 flex-grow">
-        <CardTitle className="font-headline text-xl mb-2 text-primary-foreground">{product.name}</CardTitle>
+        <CardTitle className="font-headline text-xl mb-2 text-primary-foreground">
+            <Link href={`/products/${product.id}`} className="hover:text-primary transition-colors">{product.name}</Link>
+        </CardTitle>
         <CardDescription className="font-body text-muted-foreground">{product.description}</CardDescription>
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center">

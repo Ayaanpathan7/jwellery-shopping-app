@@ -12,9 +12,10 @@ import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/gallery', label: 'Gallery' },
+  { href: '/gallery', label: 'Shop' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
+  { href: '/blog', label: 'Blog' },
 ];
 
 export function Header() {
@@ -64,6 +65,12 @@ export function Header() {
                 <span className="sr-only">Wishlist</span>
               </Link>
             </Button>
+            <Button asChild variant="ghost" size="icon" className="relative hidden md:inline-flex">
+                <Link href="/cart">
+                    <ShoppingBag className="h-5 w-5 text-primary" />
+                    <span className="sr-only">Cart</span>
+                </Link>
+            </Button>
 
           <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
@@ -112,6 +119,16 @@ export function Header() {
                           {wishlist.length}
                         </span>
                       )}
+                    </Link>
+                    <Link
+                        href="/cart"
+                        onClick={() => setSheetOpen(false)}
+                        className={cn(
+                            'flex items-center text-lg font-medium transition-colors hover:text-primary',
+                            pathname === '/cart' ? 'text-primary' : 'text-muted-foreground'
+                        )}
+                    >
+                        Cart
                     </Link>
                 </nav>
               </div>
