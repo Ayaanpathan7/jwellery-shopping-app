@@ -22,7 +22,7 @@ export default function WishlistPage() {
   if (!isClient) {
     return (
         <div className="container mx-auto px-4 py-16 md:py-24 text-center">
-            <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary-foreground">
+            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground">
                 Your Wishlist
             </h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-12">
@@ -42,7 +42,7 @@ export default function WishlistPage() {
     <div className="bg-background">
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="text-center mb-12">
-          <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary-foreground">
+          <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground">
             Your Wishlist
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
@@ -59,7 +59,7 @@ export default function WishlistPage() {
         ) : (
           <div className="text-center py-16">
              <HeartCrack className="mx-auto h-20 w-20 text-muted-foreground/50" />
-            <h2 className="mt-6 font-headline text-2xl font-semibold">Your wishlist is empty</h2>
+            <h2 className="mt-6 text-2xl font-semibold">Your wishlist is empty</h2>
             <p className="mt-2 text-muted-foreground">
               Looks like you haven't added any items yet.
             </p>

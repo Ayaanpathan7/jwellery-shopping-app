@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Heart, Menu, ShoppingBag, X } from 'lucide-react';
+import { Gem, Heart, Menu, ShoppingBag, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -33,7 +33,7 @@ export function Header() {
       <div className="container flex h-16 items-center">
         <div className="mr-auto flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <ShoppingBag className="h-6 w-6 text-primary" />
+            <Gem className="h-6 w-6 text-primary" />
             <span className="font-bold font-headline text-lg text-primary-foreground">Luna Gems</span>
           </Link>
         </div>
@@ -83,7 +83,7 @@ export function Header() {
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-center p-4 border-b">
                    <Link href="/" className="flex items-center space-x-2" onClick={() => setSheetOpen(false)}>
-                      <ShoppingBag className="h-6 w-6 text-primary" />
+                      <Gem className="h-6 w-6 text-primary" />
                       <span className="font-bold font-headline text-lg text-primary-foreground">Luna Gems</span>
                     </Link>
                    <Button variant="ghost" size="icon" onClick={() => setSheetOpen(false)}>

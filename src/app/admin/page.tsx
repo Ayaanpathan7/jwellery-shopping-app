@@ -14,7 +14,7 @@ export default function AdminPage() {
   return (
     <div className="bg-muted/40 min-h-screen">
       <div className="container mx-auto px-4 py-10">
-        <h1 className="font-headline text-3xl font-bold text-primary-foreground mb-8">
+        <h1 className="text-3xl font-bold text-primary-foreground mb-8">
           Admin Dashboard
         </h1>
 

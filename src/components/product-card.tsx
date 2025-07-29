@@ -38,7 +38,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </Dialog>
       </CardHeader>
       <CardContent className="p-4 flex-grow">
-        <CardTitle className="font-headline text-xl mb-2 text-primary-foreground">
+        <CardTitle>
             <Link href={`/products/${product.id}`} className="hover:text-primary transition-colors">{product.name}</Link>
         </CardTitle>
         <CardDescription className="font-body text-muted-foreground">{product.description}</CardDescription>

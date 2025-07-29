@@ -36,7 +36,7 @@ export default function BlogPage() {
     <div className="bg-background">
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="text-center mb-12">
-          <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary-foreground">
+          <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground">
             From Our Studio
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -54,7 +54,7 @@ export default function BlogPage() {
               </CardHeader>
               <CardContent className="p-6 flex-grow">
                 <p className="text-sm text-muted-foreground mb-2">{post.date}</p>
-                <CardTitle className="font-headline text-2xl mb-3">
+                <CardTitle>
                   <Link href="#" className="hover:text-primary transition-colors">{post.title}</Link>
                 </CardTitle>
                 <p className="text-muted-foreground font-body">{post.excerpt}</p>

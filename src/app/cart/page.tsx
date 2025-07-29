@@ -7,7 +7,7 @@ export default function CartPage() {
     <div className="bg-background">
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="text-center mb-12">
-          <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary-foreground">
+          <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground">
             Shopping Cart
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
@@ -17,7 +17,7 @@ export default function CartPage() {
 
         <div className="text-center py-16">
           <ShoppingCart className="mx-auto h-20 w-20 text-muted-foreground/50" />
-          <h2 className="mt-6 font-headline text-2xl font-semibold">Your cart is empty</h2>
+          <h2 className="mt-6 text-2xl font-semibold">Your cart is empty</h2>
           <p className="mt-2 text-muted-foreground">
             Looks like you haven't added any items yet.
           </p>
