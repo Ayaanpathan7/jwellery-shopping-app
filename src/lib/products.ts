@@ -5,6 +5,8 @@ export type Product = {
   price: string;
   images: string[];
   aiHint: string;
+  material: 'gold' | 'silver' | 'rose-gold' | 'brass';
+  gemstone: 'diamond' | 'crystal' | 'opal' | 'labradorite' | 'moonstone' | 'onyx' | 'none';
 };
 
 export const products: Product[] = [
@@ -18,7 +20,9 @@ export const products: Product[] = [
         'https://placehold.co/600x600',
         'https://placehold.co/600x600',
     ],
-    aiHint: 'gold necklace'
+    aiHint: 'gold necklace',
+    material: 'gold',
+    gemstone: 'diamond',
   },
   {
     id: 2,
@@ -30,7 +34,9 @@ export const products: Product[] = [
         'https://placehold.co/600x600',
         'https://placehold.co/600x600',
     ],
-    aiHint: 'silver earrings'
+    aiHint: 'silver earrings',
+    material: 'silver',
+    gemstone: 'crystal',
   },
   {
     id: 3,
@@ -42,7 +48,9 @@ export const products: Product[] = [
         'https://placehold.co/600x600',
         'https://placehold.co/600x600',
     ],
-    aiHint: 'gold ring'
+    aiHint: 'gold ring',
+    material: 'gold',
+    gemstone: 'opal',
   },
   {
     id: 4,
@@ -54,7 +62,9 @@ export const products: Product[] = [
         'https://placehold.co/600x600',
         'https://placehold.co/600x600',
     ],
-    aiHint: 'silver bracelet'
+    aiHint: 'silver bracelet',
+    material: 'silver',
+    gemstone: 'labradorite',
   },
   {
     id: 5,
@@ -66,7 +76,9 @@ export const products: Product[] = [
         'https://placehold.co/600x600',
         'https://placehold.co/600x600',
     ],
-    aiHint: 'rose-gold earrings'
+    aiHint: 'rose-gold earrings',
+    material: 'rose-gold',
+    gemstone: 'moonstone',
   },
   {
     id: 6,
@@ -78,7 +90,9 @@ export const products: Product[] = [
         'https://placehold.co/600x600',
         'https://placehold.co/600x600',
     ],
-    aiHint: 'gold locket'
+    aiHint: 'gold locket',
+    material: 'gold',
+    gemstone: 'none',
   },
   {
     id: 7,
@@ -90,7 +104,9 @@ export const products: Product[] = [
         'https://placehold.co/600x600',
         'https://placehold.co/600x600',
     ],
-    aiHint: 'brass cuff'
+    aiHint: 'brass cuff',
+    material: 'brass',
+    gemstone: 'onyx',
   },
   {
     id: 8,
@@ -102,6 +118,8 @@ export const products: Product[] = [
         'https://placehold.co/600x600',
         'https://placehold.co/600x600',
     ],
-    aiHint: 'gold anklet'
+    aiHint: 'gold anklet',
+    material: 'gold',
+    gemstone: 'none',
   },
 ];
