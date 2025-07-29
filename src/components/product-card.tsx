@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import type { Product } from '@/lib/products';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { WishlistButton } from './wishlist-button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
@@ -26,6 +26,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           </DialogTrigger>
           <DialogContent className="max-w-3xl p-0">
+             <DialogTitle className="sr-only">{product.name}</DialogTitle>
             <Image
               src={product.images[0].replace('600x600', '1200x1200')}
               alt={product.name}

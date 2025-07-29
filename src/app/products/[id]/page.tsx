@@ -7,7 +7,7 @@ import { ShoppingCart, Star } from 'lucide-react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product-card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { ReviewList, type Review } from '@/components/review-list';
 import { ReviewForm } from '@/components/review-form';
@@ -51,6 +51,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                       </div>
                     </DialogTrigger>
                     <DialogContent className="max-w-3xl p-0">
+                       <DialogTitle className="sr-only">{`${product.name} - view ${index + 1}`}</DialogTitle>
                        <Image
                           src={image.replace('600x600', '1200x1200')}
                           alt={`${product.name} view ${index + 1}`}
