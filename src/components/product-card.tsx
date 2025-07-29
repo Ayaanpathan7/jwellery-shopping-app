@@ -17,7 +17,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <DialogTrigger asChild>
             <div className="aspect-square w-full relative overflow-hidden cursor-zoom-in group">
               <Image
-                src={product.image}
+                src={product.images[0]}
                 alt={product.name}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -27,7 +27,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </DialogTrigger>
           <DialogContent className="max-w-3xl p-0">
             <Image
-              src={product.image.replace('600x600', '1200x1200')}
+              src={product.images[0].replace('600x600', '1200x1200')}
               alt={product.name}
               width={1200}
               height={1200}

@@ -3,7 +3,7 @@ export type Product = {
   name: string;
   description: string;
   price: string;
-  image: string;
+  images: string[];
   aiHint: string;
 };
 
@@ -13,7 +13,11 @@ export const products: Product[] = [
     name: 'Celestial Necklace',
     description: 'A delicate gold chain with a crescent moon pendant, studded with diamonds.',
     price: '$180.00',
-    image: 'https://placehold.co/600x600',
+    images: [
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+    ],
     aiHint: 'gold necklace'
   },
   {
@@ -21,7 +25,11 @@ export const products: Product[] = [
     name: 'Stardust Hoops',
     description: 'Elegant silver hoops featuring a spray of tiny embedded crystals.',
     price: '$120.00',
-    image: 'https://placehold.co/600x600',
+    images: [
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+    ],
     aiHint: 'silver earrings'
   },
   {
@@ -29,7 +37,11 @@ export const products: Product[] = [
     name: 'Orion Ring',
     description: 'A minimalist gold band with three opals set in a row, like Orion\'s belt.',
     price: '$250.00',
-    image: 'https://placehold.co/600x600',
+    images: [
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+    ],
     aiHint: 'gold ring'
   },
   {
@@ -37,7 +49,11 @@ export const products: Product[] = [
     name: 'Galaxy Bracelet',
     description: 'A fine silver chain adorned with shimmering labradorite beads.',
     price: '$150.00',
-    image: 'https://placehold.co/600x600',
+    images: [
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+    ],
     aiHint: 'silver bracelet'
   },
   {
@@ -45,7 +61,11 @@ export const products: Product[] = [
     name: 'Aurora Studs',
     description: 'Luminous moonstone studs set in a simple, elegant rose gold bezel.',
     price: '$95.00',
-    image: 'https://placehold.co/600x600',
+    images: [
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+    ],
     aiHint: 'rose-gold earrings'
   },
   {
@@ -53,7 +73,11 @@ export const products: Product[] = [
     name: 'Nova Locket',
     description: 'An antique-inspired gold locket with intricate star engravings.',
     price: '$220.00',
-    image: 'https://placehold.co/600x600',
+    images: [
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+    ],
     aiHint: 'gold locket'
   },
   {
@@ -61,7 +85,11 @@ export const products: Product[] = [
     name: 'Eclipse Cuff',
     description: 'A bold, hand-hammered brass cuff with a striking black onyx centerpiece.',
     price: '$165.00',
-    image: 'https://placehold.co/600x600',
+    images: [
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+    ],
     aiHint: 'brass cuff'
   },
   {
@@ -69,7 +97,11 @@ export const products: Product[] = [
     name: 'Solstice Anklet',
     description: 'A dainty gold anklet with tiny sun charms that catch the light.',
     price: '$110.00',
-    image: 'https://placehold.co/600x600',
+    images: [
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+        'https://placehold.co/600x600',
+    ],
     aiHint: 'gold anklet'
   },
 ];
