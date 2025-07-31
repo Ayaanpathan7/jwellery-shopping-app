@@ -21,7 +21,7 @@ export function WishlistButton({ productId }: WishlistButtonProps) {
   if (!isClient) {
     return (
       <Button variant="ghost" size="icon" disabled>
-        <Heart className="h-6 w-6" />
+        <Heart className="h-6 w-6" suppressHydrationWarning />
       </Button>
     );
   }
@@ -48,6 +48,7 @@ export function WishlistButton({ productId }: WishlistButtonProps) {
         className={cn('h-6 w-6 transition-all', {
           'fill-current': inWishlist,
         })}
+        suppressHydrationWarning
       />
     </Button>
   );

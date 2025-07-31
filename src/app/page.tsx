@@ -2,11 +2,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/product-card';
-import { products } from '@/lib/products';
+import { getFeaturedProductsServer } from '@/lib/products-server';
 import { ArrowRight } from 'lucide-react';
 
-export default function Home() {
-  const featuredProducts = products.slice(0, 3);
+export default async function Home() {
+  const featuredProducts = await getFeaturedProductsServer();
 
   return (
     <div className="flex flex-col">
@@ -14,10 +14,11 @@ export default function Home() {
         <Image
           src="https://placehold.co/1800x1000"
           alt="Signature jewelry piece on a dark, elegant background"
-          layout="fill"
-          objectFit="cover"
+          fill
+          style={{ objectFit: 'cover' }}
           className="absolute z-0"
           data-ai-hint="elegant jewelry"
+          priority
         />
         <div className="absolute inset-0 bg-black/50 z-10" />
         <div className="relative z-20 text-center p-4">
@@ -55,7 +56,7 @@ export default function Home() {
             Featured Items
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProducts.map((product) => (
+            {featuredProducts.slice(0, 3).map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

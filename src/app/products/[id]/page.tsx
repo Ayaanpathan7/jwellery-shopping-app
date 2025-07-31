@@ -1,4 +1,4 @@
-import { products } from '@/lib/products';
+import { getProductServer, getProductsServer } from '@/lib/products-server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -12,21 +12,27 @@ import { Separator } from '@/components/ui/separator';
 import { ReviewList, type Review } from '@/components/review-list';
 import { ReviewForm } from '@/components/review-form';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const mockReviews: Review[] = [
-  { id: 1, name: 'Sophia L.', rating: 5, review: 'Absolutely stunning! The craftsmanship is top-notch. I get compliments every time I wear it.', date: '2 weeks ago' },
-  { id: 2, name: 'James R.', rating: 4, review: 'Beautiful piece, very elegant. The packaging was lovely too. It was a bit smaller than I expected, but I still love it.', date: '1 month ago' },
-  { id: 3, name: 'Isabella C.', rating: 5, review: 'I bought this as a gift for my sister and she was overjoyed. It\'s even more beautiful in person. Highly recommend!', date: '3 weeks ago' },
+  { id: 1, user_name: 'Sophia L.', rating: 5, comment: 'Absolutely stunning! The craftsmanship is top-notch. I get compliments every time I wear it.', created_at: '2 weeks ago' },
+  { id: 2, user_name: 'James R.', rating: 4, comment: 'Beautiful piece, very elegant. The packaging was lovely too. It was a bit smaller than I expected, but I still love it.', created_at: '1 month ago' },
+  { id: 3, user_name: 'Isabella C.', rating: 5, comment: 'I bought this as a gift for my sister and she was overjoyed. It\'s even more beautiful in person. Highly recommend!', created_at: '3 weeks ago' },
 ];
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = products.find((p) => p.id === parseInt(params.id, 10));
+export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const product = await getProductServer(id);
 
   if (!product) {
     notFound();
   }
 
-  const relatedProducts = products.filter(p => p.id !== product.id).slice(0, 4);
+  // Get related products (excluding current product)
+  const allProducts = await getProductsServer();
+  const relatedProducts = allProducts
+    .filter(p => p.id !== product.id)
+    .slice(0, 4);
 
   const averageRating = mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length;
 
@@ -46,7 +52,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                           alt={`${product.name} view ${index + 1}`}
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          data-ai-hint={product.aiHint}
+                          data-ai-hint={product.ai_hint}
                         />
                       </div>
                     </DialogTrigger>
@@ -58,7 +64,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                           width={1200}
                           height={1200}
                           className="w-full h-auto"
-                          data-ai-hint={product.aiHint}
+                          data-ai-hint={product.ai_hint}
                         />
                     </DialogContent>
                   </Dialog>
@@ -80,13 +86,26 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 </div>
                 <span className="text-muted-foreground text-sm">({mockReviews.length} reviews)</span>
             </div>
-            <p className="text-2xl font-semibold text-primary mb-6">{product.price}</p>
+            <p className="text-2xl font-semibold text-primary mb-6">${product.price.toFixed(2)}</p>
+            <div className="flex gap-2 mb-6">
+              <Badge variant="outline" className="capitalize">{product.material}</Badge>
+              <Badge variant="outline" className="capitalize">{product.gemstone}</Badge>
+              {product.is_featured && <Badge variant="secondary">Featured</Badge>}
+              <Badge variant={product.in_stock ? "default" : "destructive"}>
+                {product.in_stock ? "In Stock" : "Out of Stock"}
+              </Badge>
+            </div>
             <p className="text-muted-foreground font-body text-lg mb-8">
               {product.description}
             </p>
             <div className="flex items-center gap-4">
-              <Button size="lg" className="flex-grow">
-                <ShoppingCart className="mr-2 h-5 w-5" /> Add to Cart
+              <Button 
+                size="lg" 
+                className="flex-grow"
+                disabled={!product.in_stock}
+              >
+                <ShoppingCart className="mr-2 h-5 w-5" /> 
+                {product.in_stock ? "Add to Cart" : "Out of Stock"}
               </Button>
               <WishlistButton productId={product.id} />
             </div>
@@ -106,13 +125,13 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
         <div className="grid md:grid-cols-5 gap-16">
             <div className="md:col-span-3">
                 <h2 className="text-3xl font-bold font-headline mb-8 text-primary-foreground">Customer Reviews</h2>
-                <ReviewList reviews={mockReviews} />
+                <ReviewList productId={product.id} />
             </div>
             <div className="md:col-span-2">
                 <h2 className="text-3xl font-bold font-headline mb-8 text-primary-foreground">Write a Review</h2>
                 <Card className="bg-accent">
                   <CardContent className="p-6">
-                    <ReviewForm />
+                    <ReviewForm productId={product.id} />
                   </CardContent>
                 </Card>
             </div>

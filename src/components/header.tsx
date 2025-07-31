@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Gem, Heart, Menu, ShoppingBag, X } from 'lucide-react';
+import { Gem, Heart, Menu, ShoppingBag, X, User, LogOut } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -33,7 +35,7 @@ export function Header() {
       <div className="container flex h-16 items-center">
         <div className="mr-auto flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Gem className="h-6 w-6 text-primary" />
+            <Gem className="h-6 w-6 text-primary" suppressHydrationWarning />
             <span className="font-bold font-headline text-lg text-primary-foreground">Luna Gems</span>
           </Link>
         </div>
@@ -56,7 +58,7 @@ export function Header() {
         <div className="flex items-center justify-end ml-auto">
            <Button asChild variant="ghost" size="icon" className="relative hidden md:inline-flex">
               <Link href="/wishlist">
-                <Heart className="h-5 w-5 text-primary" />
+                <Heart className="h-5 w-5 text-primary" suppressHydrationWarning />
                 {isClient && wishlist.length > 0 && (
                   <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
                     {wishlist.length}
@@ -67,15 +69,20 @@ export function Header() {
             </Button>
             <Button asChild variant="ghost" size="icon" className="relative hidden md:inline-flex">
                 <Link href="/cart">
-                    <ShoppingBag className="h-5 w-5 text-primary" />
+                    <ShoppingBag className="h-5 w-5 text-primary" suppressHydrationWarning />
                     <span className="sr-only">Cart</span>
+                </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex text-xs">
+                <Link href="/admin">
+                    Admin
                 </Link>
             </Button>
 
           <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-6 w-6" />
+                <Menu className="h-6 w-6" suppressHydrationWarning />
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
@@ -83,11 +90,11 @@ export function Header() {
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-center p-4 border-b">
                    <Link href="/" className="flex items-center space-x-2" onClick={() => setSheetOpen(false)}>
-                      <Gem className="h-6 w-6 text-primary" />
+                      <Gem className="h-6 w-6 text-primary" suppressHydrationWarning />
                       <span className="font-bold font-headline text-lg text-primary-foreground">Luna Gems</span>
                     </Link>
                    <Button variant="ghost" size="icon" onClick={() => setSheetOpen(false)}>
-                      <X className="h-6 w-6" />
+                      <X className="h-6 w-6" suppressHydrationWarning />
                       <span className="sr-only">Close menu</span>
                     </Button>
                 </div>
@@ -129,6 +136,16 @@ export function Header() {
                         )}
                     >
                         Cart
+                    </Link>
+                    <Link
+                        href="/admin"
+                        onClick={() => setSheetOpen(false)}
+                        className={cn(
+                            'flex items-center text-sm font-medium transition-colors hover:text-primary mt-4 pt-4 border-t',
+                            pathname === '/admin' ? 'text-primary' : 'text-muted-foreground'
+                        )}
+                    >
+                        Admin Dashboard
                     </Link>
                 </nav>
               </div>
