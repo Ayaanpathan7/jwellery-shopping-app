@@ -2,8 +2,9 @@ import Image from 'next/image';
 import type { Product } from '@/lib/products-api';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { WishlistButton } from './wishlist-button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { Heart } from 'lucide-react';
 
 type ProductCardProps = {
   product: Product;
@@ -15,43 +16,84 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card h-full">
-      <CardHeader className="p-0">
-        <Dialog>
-          <DialogTrigger asChild>
-            <div className="aspect-square w-full relative overflow-hidden cursor-zoom-in group">
-              <Image
-                src={product.images[0]}
-                alt={product.name}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                data-ai-hint={product.ai_hint}
-              />
-            </div>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl p-0">
-             <DialogTitle className="sr-only">{product.name}</DialogTitle>
+    <div className="group relative bg-white rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+      {/* Product Image */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <div className="aspect-square w-full relative overflow-hidden cursor-zoom-in">
             <Image
-              src={product.images[0].replace('600x600', '1200x1200')}
+              src={product.images[0]}
               alt={product.name}
-              width={1200}
-              height={1200}
-              className="w-full h-auto"
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
               data-ai-hint={product.ai_hint}
             />
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
-      <CardContent className="p-4 flex-grow">
-        <CardTitle>
-            <Link href={`/products/${product.id}`} className="hover:text-primary transition-colors">{product.name}</Link>
-        </CardTitle>
-        <CardDescription className="font-body text-muted-foreground">{product.description}</CardDescription>
-      </CardContent>
-      <CardFooter className="p-4 flex justify-between items-center">
-        <p className="text-lg font-semibold text-primary">{formatPrice(product.price)}</p>
-        <WishlistButton productId={product.id} />
-      </CardFooter>
-    </Card>
+            
+            {/* Overlay on hover */}
+            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+            {/* Featured badge */}
+            {product.is_featured && (
+              <Badge className="absolute top-3 left-3 bg-black text-white">
+                Featured
+              </Badge>
+            )}
+            
+            {/* Wishlist button overlay */}
+            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <WishlistButton productId={product.id} />
+            </div>
+          </div>
+        </DialogTrigger>
+        <DialogContent className="max-w-3xl p-0">
+           <DialogTitle className="sr-only">{product.name}</DialogTitle>
+          <Image
+            src={product.images[0].replace('600x600', '1200x1200')}
+            alt={product.name}
+            width={1200}
+            height={1200}
+            className="w-full h-auto"
+            data-ai-hint={product.ai_hint}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Info */}
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-2">
+          <Link href={`/products/${product.id}`} className="hover:text-gray-600 transition-colors">
+            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">{product.name}</h3>
+          </Link>
+        </div>
+        
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
+        
+        {/* Material and Gemstone */}
+        <div className="flex gap-2 mb-4">
+          <Badge variant="secondary" className="text-xs capitalize">
+            {product.material}
+          </Badge>
+          {product.gemstone !== 'none' && (
+            <Badge variant="outline" className="text-xs capitalize">
+              {product.gemstone}
+            </Badge>
+          )}
+        </div>
+
+        {/* Price and Stock */}
+        <div className="flex items-center justify-between">
+          <div className="text-xl font-bold text-gray-900">
+            {formatPrice(product.price)}
+          </div>
+          <div className="text-sm text-gray-500">
+            {product.in_stock ? (
+              <span className="text-green-600">In Stock</span>
+            ) : (
+              <span className="text-red-600">Out of Stock</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Gem, Heart, Menu, ShoppingBag, X, User, LogOut } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,13 @@ import { useWishlist } from '@/hooks/use-wishlist';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -22,13 +29,55 @@ const navLinks = [
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const { wishlist } = useWishlist();
   const [isSheetOpen, setSheetOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Get initial session
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      setLoading(false);
+    };
+
+    getSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to sign out',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Success',
+        description: 'Signed out successfully',
+      });
+      router.push('/');
+    }
+  };
+
+  const isAdmin = user?.email === 'admin@lunagems.com' || user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -55,7 +104,7 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center justify-end ml-auto">
+        <div className="flex items-center justify-end ml-auto space-x-2">
            <Button asChild variant="ghost" size="icon" className="relative hidden md:inline-flex">
               <Link href="/wishlist">
                 <Heart className="h-5 w-5 text-primary" suppressHydrationWarning />
@@ -67,17 +116,64 @@ export function Header() {
                 <span className="sr-only">Wishlist</span>
               </Link>
             </Button>
+            
             <Button asChild variant="ghost" size="icon" className="relative hidden md:inline-flex">
                 <Link href="/cart">
                     <ShoppingBag className="h-5 w-5 text-primary" suppressHydrationWarning />
                     <span className="sr-only">Cart</span>
                 </Link>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex text-xs">
-                <Link href="/admin">
-                    Admin
-                </Link>
-            </Button>
+
+            {/* User Authentication */}
+            {!loading && (
+              <>
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="hidden md:inline-flex">
+                        <User className="h-5 w-5 text-primary" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem asChild>
+                        <div className="px-2 py-1.5">
+                          <div className="text-sm font-medium">{user.email}</div>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      {isAdmin && (
+                        <>
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin" className="w-full">
+                              Admin Dashboard
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
+                      <DropdownMenuItem asChild>
+                        <Link href="/orders" className="w-full">
+                          My Orders
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleSignOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <div className="hidden md:flex items-center space-x-2">
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/login">Sign In</Link>
+                    </Button>
+                    <Button asChild size="sm">
+                      <Link href="/login">Sign Up</Link>
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
 
           <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
@@ -112,6 +208,7 @@ export function Header() {
                       {link.label}
                     </Link>
                   ))}
+                  
                   <Link
                       href="/wishlist"
                       onClick={() => setSheetOpen(false)}
@@ -127,6 +224,7 @@ export function Header() {
                         </span>
                       )}
                     </Link>
+                    
                     <Link
                         href="/cart"
                         onClick={() => setSheetOpen(false)}
@@ -137,16 +235,64 @@ export function Header() {
                     >
                         Cart
                     </Link>
-                    <Link
-                        href="/admin"
-                        onClick={() => setSheetOpen(false)}
-                        className={cn(
-                            'flex items-center text-sm font-medium transition-colors hover:text-primary mt-4 pt-4 border-t',
-                            pathname === '/admin' ? 'text-primary' : 'text-muted-foreground'
+
+                    {/* Mobile Auth Section */}
+                    {!loading && (
+                      <div className="mt-4 pt-4 border-t space-y-3">
+                        {user ? (
+                          <>
+                            <div className="text-sm text-muted-foreground">
+                              Signed in as: {user.email}
+                            </div>
+                            {isAdmin && (
+                              <Link
+                                href="/admin"
+                                onClick={() => setSheetOpen(false)}
+                                className="block text-lg font-medium transition-colors hover:text-primary"
+                              >
+                                Admin Dashboard
+                              </Link>
+                            )}
+                            <Link
+                              href="/orders"
+                              onClick={() => setSheetOpen(false)}
+                              className="block text-lg font-medium transition-colors hover:text-primary"
+                            >
+                              My Orders
+                            </Link>
+                            <Button
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => {
+                                handleSignOut();
+                                setSheetOpen(false);
+                              }}
+                            >
+                              <LogOut className="mr-2 h-4 w-4" />
+                              Sign Out
+                            </Button>
+                          </>
+                        ) : (
+                          <div className="space-y-2">
+                            <Button
+                              asChild
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => setSheetOpen(false)}
+                            >
+                              <Link href="/login">Sign In</Link>
+                            </Button>
+                            <Button
+                              asChild
+                              className="w-full"
+                              onClick={() => setSheetOpen(false)}
+                            >
+                              <Link href="/login">Sign Up</Link>
+                            </Button>
+                          </div>
                         )}
-                    >
-                        Admin Dashboard
-                    </Link>
+                      </div>
+                    )}
                 </nav>
               </div>
             </SheetContent>
