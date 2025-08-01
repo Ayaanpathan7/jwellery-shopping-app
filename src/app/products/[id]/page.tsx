@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { WishlistButton } from '@/components/wishlist-button';
+import { AddToCartButton } from '@/components/add-to-cart-button';
 import { ShoppingCart, Star } from 'lucide-react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product-card';
@@ -99,14 +100,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               {product.description}
             </p>
             <div className="flex items-center gap-4">
-              <Button 
-                size="lg" 
-                className="flex-grow"
-                disabled={!product.in_stock}
-              >
-                <ShoppingCart className="mr-2 h-5 w-5" /> 
-                {product.in_stock ? "Add to Cart" : "Out of Stock"}
-              </Button>
+              <AddToCartButton product={product} size="lg" />
               <WishlistButton productId={product.id} />
             </div>
             <div className="mt-8 border-t pt-6">

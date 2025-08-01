@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useWishlist } from '@/hooks/use-wishlist';
+import { useCart } from '@/context/cart-provider';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -31,11 +32,13 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { wishlist } = useWishlist();
+  const { getItemCount } = useCart();
   const [isSheetOpen, setSheetOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     setIsClient(true);
@@ -59,6 +62,13 @@ export function Header() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Update cart count safely after hydration
+  useEffect(() => {
+    if (isClient) {
+      setCartCount(getItemCount());
+    }
+  }, [isClient, getItemCount]);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -120,6 +130,11 @@ export function Header() {
             <Button asChild variant="ghost" size="icon" className="relative hidden md:inline-flex">
                 <Link href="/cart">
                     <ShoppingBag className="h-5 w-5 text-primary" suppressHydrationWarning />
+                    {isClient && cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {cartCount}
+                      </span>
+                    )}
                     <span className="sr-only">Cart</span>
                 </Link>
             </Button>
@@ -234,6 +249,11 @@ export function Header() {
                         )}
                     >
                         Cart
+                        {isClient && cartCount > 0 && (
+                          <span className="ml-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
+                            {cartCount}
+                          </span>
+                        )}
                     </Link>
 
                     {/* Mobile Auth Section */}

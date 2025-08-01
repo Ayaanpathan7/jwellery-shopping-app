@@ -2,9 +2,11 @@ import Image from 'next/image';
 import type { Product } from '@/lib/products-api';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { WishlistButton } from './wishlist-button';
+import { AddToCartButton } from './add-to-cart-button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Heart } from 'lucide-react';
+import { Heart, ShoppingCart } from 'lucide-react';
 
 type ProductCardProps = {
   product: Product;
@@ -81,7 +83,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Price and Stock */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div className="text-xl font-bold text-gray-900">
             {formatPrice(product.price)}
           </div>
@@ -92,6 +94,16 @@ export function ProductCard({ product }: ProductCardProps) {
               <span className="text-red-600">Out of Stock</span>
             )}
           </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <AddToCartButton product={product} size="sm" />
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/products/${product.id}`}>
+              View Details
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
