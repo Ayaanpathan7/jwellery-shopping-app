@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { OrdersClient } from '@/lib/orders-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,10 +12,14 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { useCart } from '@/context/cart-provider';
+import Image from 'next/image';
+import Link from 'next/link';
 
 export default function CheckoutPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { items, getTotalPrice, clearCart } = useCart();
   const [orderData, setOrderData] = useState({
     firstName: '',
     lastName: '',
@@ -30,9 +35,25 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const formatPrice = (price: number) => {
+    return `$${price.toFixed(2)}`;
+  };
+
   useEffect(() => {
     checkUser();
   }, []);
+
+  useEffect(() => {
+    // Redirect to cart if no items
+    if (items.length === 0) {
+      toast({
+        title: "Cart is Empty",
+        description: "Add some items to your cart before checking out.",
+        variant: "destructive",
+      });
+      router.push('/cart');
+    }
+  }, [items, router, toast]);
 
   const checkUser = async () => {
     try {
@@ -68,25 +89,78 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     try {
-      // Here you would typically:
-      // 1. Validate cart items
-      // 2. Calculate total
-      // 3. Process payment
-      // 4. Create order record
-      // 5. Send confirmation email
+      // Debug: Check if user is authenticated
+      console.log('User authentication status:', user);
+      
+      // Validate form data
+      const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'postalCode', 'country'];
+      const missingFields = requiredFields.filter(field => !orderData[field as keyof typeof orderData]);
+      
+      if (missingFields.length > 0) {
+        toast({
+          title: 'Missing Information',
+          description: 'Please fill in all required fields.',
+          variant: 'destructive',
+        });
+        setSubmitting(false);
+        return;
+      }
 
-      // For now, we'll just show a success message
-      toast({
-        title: 'Order Placed!',
-        description: 'Thank you for your order. You will receive a confirmation email shortly.',
+      // Validate cart items
+      if (items.length === 0) {
+        toast({
+          title: 'Cart is Empty',
+          description: 'Add some items to your cart before checking out.',
+          variant: 'destructive',
+        });
+        router.push('/cart');
+        return;
+      }
+
+      // Calculate total
+      const total = getTotalPrice();
+      
+      // Create order object for API
+      const orderPayload = {
+        customer_info: orderData,
+        items: items.map(item => ({
+          productId: item.product.id,
+          productName: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price,
+          total: item.product.price * item.quantity
+        })),
+        total_amount: total
+      };
+
+      console.log('Submitting order:', orderPayload);
+
+      // Create order using the OrdersClient (direct database access)
+      const order = await OrdersClient.createOrder({
+        user_id: user.id,
+        customer_info: orderPayload.customer_info,
+        items: orderPayload.items,
+        total_amount: orderPayload.total_amount,
+        status: 'pending'
       });
 
-      // Redirect to a success page or order confirmation
-      router.push('/');
+      console.log('Order created successfully:', order);
+
+      // Clear cart after successful order
+      clearCart();
+
+      toast({
+        title: 'Order Placed Successfully! 🎉',
+        description: `Thank you for your order of ${formatPrice(total)}. Order ID: ${order.id}. You will receive a confirmation email shortly.`,
+      });
+
+      // Redirect to a success page or orders page
+      router.push('/?success=true');
     } catch (error) {
+      console.error('Order submission error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to place order. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to place order. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -100,8 +174,25 @@ export default function CheckoutPage() {
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-primary-foreground mb-8">Checkout</h1>
-            <div className="animate-pulse">
-              <div className="h-4 bg-muted rounded w-1/2 mx-auto"></div>
+            <p>Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty cart message if no items
+  if (items.length === 0) {
+    return (
+      <div className="bg-background min-h-screen">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center max-w-md mx-auto">
+            <h1 className="text-4xl font-bold text-primary-foreground mb-8">Checkout</h1>
+            <div className="bg-white rounded-lg p-8 shadow-sm">
+              <p className="text-muted-foreground mb-4">Your cart is empty</p>
+              <Button asChild>
+                <Link href="/gallery">Continue Shopping</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -255,37 +346,68 @@ export default function CheckoutPage() {
           <Card>
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
+              <CardDescription>Review your items before placing the order</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  Your cart items will appear here
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  (Cart functionality to be implemented)
-                </p>
+              {/* Cart Items */}
+              <div className="space-y-3">
+                {items.map((item) => (
+                  <div key={item.id} className="flex gap-3 py-3 border-b">
+                    <div className="relative w-16 h-16 flex-shrink-0">
+                      <Image
+                        src={item.product.images[0]}
+                        alt={item.product.name}
+                        fill
+                        className="object-cover rounded-md"
+                      />
+                    </div>
+                    <div className="flex-grow">
+                      <h4 className="font-medium text-sm line-clamp-2">{item.product.name}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {item.product.material} • {item.product.gemstone !== 'none' && item.product.gemstone}
+                      </p>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-sm">Qty: {item.quantity}</span>
+                        <span className="font-medium">{formatPrice(item.product.price * item.quantity)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
               
               <Separator />
               
+              {/* Order Totals */}
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>$0.00</span>
+                  <span>{formatPrice(getTotalPrice())}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>$0.00</span>
+                  <span className="text-green-600">Free</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Tax</span>
-                  <span>$0.00</span>
+                  <span>Calculated at checkout</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>$0.00</span>
+                  <span>{formatPrice(getTotalPrice())}</span>
                 </div>
+              </div>
+
+              {/* Cart Actions */}
+              <div className="pt-4 space-y-2">
+                <Button asChild variant="outline" className="w-full" size="sm">
+                  <Link href="/cart">
+                    Edit Cart
+                  </Link>
+                </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  🔒 Secure checkout • 💎 Authentic guarantee • 📦 Free shipping
+                </p>
               </div>
             </CardContent>
           </Card>

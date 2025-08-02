@@ -90,6 +90,79 @@ export type Database = {
           message?: string
         }
       }
+      orders: {
+        Row: {
+          id: number
+          user_id: string
+          customer_info: {
+            firstName: string
+            lastName: string
+            email: string
+            phone: string
+            address: string
+            city: string
+            postalCode: string
+            country: string
+            notes?: string
+          }
+          items: {
+            productId: number
+            productName: string
+            quantity: number
+            price: number
+            total: number
+          }[]
+          total_amount: number
+          status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          customer_info: {
+            firstName: string
+            lastName: string
+            email: string
+            phone: string
+            address: string
+            city: string
+            postalCode: string
+            country: string
+            notes?: string
+          }
+          items: {
+            productId: number
+            productName: string
+            quantity: number
+            price: number
+            total: number
+          }[]
+          total_amount: number
+          status?: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+        }
+        Update: {
+          customer_info?: {
+            firstName?: string
+            lastName?: string
+            email?: string
+            phone?: string
+            address?: string
+            city?: string
+            postalCode?: string
+            country?: string
+            notes?: string
+          }
+          items?: {
+            productId: number
+            productName: string
+            quantity: number
+            price: number
+            total: number
+          }[]
+          total_amount?: number
+          status?: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+        }
+      }
     }
   }
 }
