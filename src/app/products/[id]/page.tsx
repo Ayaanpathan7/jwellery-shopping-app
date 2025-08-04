@@ -108,7 +108,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <ul className="list-disc list-inside text-muted-foreground space-y-1">
                     <li>Handcrafted with ethically sourced materials.</li>
                     <li>Available in 14k Gold, Rose Gold, and Sterling Silver.</li>
-                    <li>Comes in a signature Luna Gems gift box.</li>
+                    <li>Comes in a signature Creations by Shubhi gift box.</li>
                 </ul>
             </div>
           </div>

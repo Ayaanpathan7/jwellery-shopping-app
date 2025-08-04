@@ -17,7 +17,7 @@ const blogPosts = [
     id: 2,
     title: 'Caring for Your Handcrafted Jewelry',
     date: 'July 15, 2024',
-    excerpt: 'Keep your treasures sparkling for a lifetime. Our guide to cleaning and storing your precious Luna Gems pieces.',
+    excerpt: 'Keep your treasures sparkling for a lifetime. Our guide to cleaning and storing your precious Creations by Shubhi pieces.',
     image: 'https://placehold.co/800x600',
     aiHint: 'jewelry care'
   },
@@ -40,7 +40,7 @@ export default function BlogPage() {
             From Our Studio
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Insights, stories, and inspiration from the world of Luna Gems.
+            Insights, stories, and inspiration from the world of Creations by Shubhi.
           </p>
         </div>
 

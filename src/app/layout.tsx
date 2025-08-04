@@ -7,7 +7,7 @@ import { WishlistProvider } from '@/context/wishlist-provider';
 import { CartProvider } from '@/context/cart-provider';
 
 export const metadata: Metadata = {
-  title: 'Luna Gems',
+  title: 'Creations by Shubhi',
   description: 'Handcrafted Elegance for Every Moment.',
 };
 

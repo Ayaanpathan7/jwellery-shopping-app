@@ -11,7 +11,7 @@ export default function AboutPage() {
             </h1>
             <div className="space-y-6 text-muted-foreground font-body text-base md:text-lg">
               <p>
-                Luna Gems was born from a passion for timeless beauty and a deep respect for the earth. Our founder, a second-generation artisan, envisioned a jewelry line that was not only beautiful but also meaningful—a collection that told a story of care, craftsmanship, and conscious creation.
+                Creations by Shubhi was born from a passion for timeless beauty and a deep respect for the earth. Our founder, a second-generation artisan, envisioned a jewelry line that was not only beautiful but also meaningful—a collection that told a story of care, craftsmanship, and conscious creation.
               </p>
               <p>
                 We believe that the most precious items are those made with intention. That's why every piece in our collection is handcrafted in our small studio, where traditional techniques meet modern design. We pour our hearts into every detail, from the initial sketch to the final polish.

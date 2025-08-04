@@ -95,7 +95,7 @@ export function Header() {
         <div className="mr-auto flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <Gem className="h-6 w-6 text-primary" suppressHydrationWarning />
-            <span className="font-bold font-headline text-lg text-primary-foreground">Luna Gems</span>
+            <span className="font-bold font-headline text-lg text-primary-foreground">Creations by Shubhi</span>
           </Link>
         </div>
 
@@ -202,7 +202,7 @@ export function Header() {
                 <div className="flex justify-between items-center p-4 border-b">
                    <Link href="/" className="flex items-center space-x-2" onClick={() => setSheetOpen(false)}>
                       <Gem className="h-6 w-6 text-primary" suppressHydrationWarning />
-                      <span className="font-bold font-headline text-lg text-primary-foreground">Luna Gems</span>
+                      <span className="font-bold font-headline text-lg text-primary-foreground">Creations by Shubhi</span>
                     </Link>
                    <Button variant="ghost" size="icon" onClick={() => setSheetOpen(false)}>
                       <X className="h-6 w-6" suppressHydrationWarning />
