@@ -1,462 +1,471 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Switch } from '@/components/ui/switch';
-import { Trash2, Edit, Plus, LogOut } from 'lucide-react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react'
+import { createClient } from '@supabase/supabase-js'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import ImageUpload from '@/components/image-upload'
+import CloudinaryStatus from '@/components/cloudinary-status'
 
-type Product = {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  images: string[];
-  ai_hint: string;
-  material: 'gold' | 'silver' | 'rose-gold' | 'brass';
-  gemstone: 'diamond' | 'crystal' | 'opal' | 'labradorite' | 'moonstone' | 'onyx' | 'none';
-  is_featured: boolean;
-  in_stock: boolean;
-  created_at: string;
-};
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
-const materials = ['gold', 'silver', 'rose-gold', 'brass'];
-const gemstones = ['diamond', 'crystal', 'opal', 'labradorite', 'moonstone', 'onyx', 'none'];
+interface Order {
+  id: string
+  created_at: string
+  user_email: string
+  status: string
+  total_amount: number
+  items: any[]
+  customer_info: any
+}
+
+interface Product {
+  id: number
+  name: string
+  price: number
+  image_url: string
+  description: string
+  category: string
+  in_stock: boolean
+  material?: string
+  gemstone?: string
+}
 
 export default function AdminPage() {
-  const [user, setUser] = useState<any>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { toast } = useToast();
-  const router = useRouter();
-
-  const [formData, setFormData] = useState<{
-    name: string;
-    description: string;
-    price: number;
-    images: string[];
-    ai_hint: string;
-    material: 'gold' | 'silver' | 'rose-gold' | 'brass';
-    gemstone: 'diamond' | 'crystal' | 'opal' | 'labradorite' | 'moonstone' | 'onyx' | 'none';
-    is_featured: boolean;
-    in_stock: boolean;
-  }>({
+  const [orders, setOrders] = useState<Order[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [newProduct, setNewProduct] = useState({
     name: '',
-    description: '',
     price: 0,
-    images: [''],
-    ai_hint: '',
-    material: 'gold',
-    gemstone: 'none',
-    is_featured: false,
+    image_url: '',
+    description: '',
+    category: '',
     in_stock: true,
-  });
+    material: '',
+    gemstone: ''
+  })
 
+  // Load orders and products from database
   useEffect(() => {
-    checkUser();
-    fetchProducts();
-  }, []);
+    loadOrders()
+    loadProducts()
+  }, [])
 
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user || (user.email !== 'admin@lunagems.com' && user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL)) {
-      router.push('/login');
-      return;
-    }
-    setUser(user);
-  };
-
-  const fetchProducts = async () => {
+  const loadProducts = async () => {
     try {
-      const response = await fetch('/api/products');
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error loading products:', error)
+      } else {
+        setProducts(data || [])
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error loading products:', error)
     }
-  };
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const loadOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error loading orders:', error)
+      } else {
+        setOrders(data || [])
+      }
+    } catch (error) {
+      console.error('Error loading orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId)
+
+      if (error) {
+        console.error('Error updating order status:', error)
+        alert('Failed to update order status')
+      } else {
+        setOrders(orders.map(order => 
+          order.id === orderId ? { ...order, status: newStatus } : order
+        ))
+        alert('Order status updated successfully')
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error)
+      alert('Failed to update order status')
+    }
+  }
+
+  const addProduct = async () => {
+    if (!newProduct.name || !newProduct.price || !newProduct.image_url) {
+      alert('Please fill in all required fields (Name, Price, and Image)')
+      return
+    }
 
     try {
-      const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
-      const method = editingProduct ? 'PUT' : 'POST';
+      const { data, error } = await supabase
+        .from('products')
+        .insert([newProduct])
+        .select()
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          images: formData.images.filter(img => img.trim() !== ''),
-        }),
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Success',
-          description: `Product ${editingProduct ? 'updated' : 'created'} successfully!`,
-        });
-        setIsDialogOpen(false);
-        resetForm();
-        fetchProducts();
+      if (error) {
+        console.error('Error adding product:', error)
+        alert('Failed to add product')
       } else {
-        const error = await response.json();
-        throw new Error(error.error);
+        if (data && data.length > 0) {
+          setProducts([data[0], ...products])
+          setNewProduct({
+            name: '',
+            price: 0,
+            image_url: '',
+            description: '',
+            category: '',
+            in_stock: true,
+            material: '',
+            gemstone: ''
+          })
+          alert('Product added successfully')
+        }
       }
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Error adding product:', error)
+      alert('Failed to add product')
     }
-  };
+  }
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+  const deleteProduct = async (productId: number) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      try {
+        const { error } = await supabase
+          .from('products')
+          .delete()
+          .eq('id', productId)
+
+        if (error) {
+          console.error('Error deleting product:', error)
+          alert('Failed to delete product')
+        } else {
+          setProducts(products.filter(p => p.id !== productId))
+          alert('Product deleted successfully')
+        }
+      } catch (error) {
+        console.error('Error deleting product:', error)
+        alert('Failed to delete product')
+      }
+    }
+  }
+
+  const toggleProductStock = async (productId: number) => {
+    const product = products.find(p => p.id === productId)
+    if (!product) return
 
     try {
-      const response = await fetch(`/api/products/${id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('products')
+        .update({ in_stock: !product.in_stock })
+        .eq('id', productId)
 
-      if (response.ok) {
-        toast({
-          title: 'Success',
-          description: 'Product deleted successfully!',
-        });
-        fetchProducts();
+      if (error) {
+        console.error('Error updating product stock:', error)
+        alert('Failed to update product stock')
       } else {
-        const error = await response.json();
-        throw new Error(error.error);
+        setProducts(products.map(p => 
+          p.id === productId ? { ...p, in_stock: !p.in_stock } : p
+        ))
       }
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+    } catch (error) {
+      console.error('Error updating product stock:', error)
+      alert('Failed to update product stock')
     }
-  };
+  }
 
-  const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-    setFormData({
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      images: product.images.length > 0 ? product.images : [''],
-      ai_hint: product.ai_hint,
-      material: product.material,
-      gemstone: product.gemstone,
-      is_featured: product.is_featured,
-      in_stock: product.in_stock,
-    });
-    setIsDialogOpen(true);
-  };
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800'
+      case 'processing': return 'bg-blue-100 text-blue-800'
+      case 'shipped': return 'bg-purple-100 text-purple-800'
+      case 'delivered': return 'bg-green-100 text-green-800'
+      case 'cancelled': return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
 
-  const resetForm = () => {
-    setEditingProduct(null);
-    setFormData({
-      name: '',
-      description: '',
-      price: 0,
-      images: [''],
-      ai_hint: '',
-      material: 'gold',
-      gemstone: 'none',
-      is_featured: false,
-      in_stock: true,
-    });
-  };
-
-  const handleImageChange = (index: number, value: string) => {
-    const newImages = [...formData.images];
-    newImages[index] = value;
-    setFormData(prev => ({ ...prev, images: newImages }));
-  };
-
-  const addImageField = () => {
-    setFormData(prev => ({ ...prev, images: [...prev.images, ''] }));
-  };
-
-  const removeImageField = (index: number) => {
-    const newImages = formData.images.filter((_, i) => i !== index);
-    setFormData(prev => ({ ...prev, images: newImages.length > 0 ? newImages : [''] }));
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
-  if (loading && !user) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-headline mb-4">Loading...</h2>
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading admin dashboard...</div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-4xl font-headline font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage your Luna Gems products</p>
-        </div>
-        <div className="flex gap-4">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={resetForm}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingProduct ? 'Edit Product' : 'Add New Product'}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="name">Product Name</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="price">Price ($)</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) }))}
-                      required
-                    />
-                  </div>
-                </div>
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+      
+      <Tabs defaultValue="orders" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="orders">Orders Management</TabsTrigger>
+          <TabsTrigger value="products">Products Management</TabsTrigger>
+        </TabsList>
 
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label>Product Images</Label>
-                  {formData.images.map((image, index) => (
-                    <div key={index} className="flex gap-2 mt-2">
-                      <Input
-                        placeholder="Image URL"
-                        value={image}
-                        onChange={(e) => handleImageChange(index, e.target.value)}
-                      />
-                      {formData.images.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeImageField(index)}
-                        >
-                          Remove
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addImageField}
-                    className="mt-2"
-                  >
-                    Add Image
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="material">Material</Label>
-                    <Select value={formData.material} onValueChange={(value: any) => setFormData(prev => ({ ...prev, material: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {materials.map(material => (
-                          <SelectItem key={material} value={material}>
-                            {material.charAt(0).toUpperCase() + material.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="gemstone">Gemstone</Label>
-                    <Select value={formData.gemstone} onValueChange={(value: any) => setFormData(prev => ({ ...prev, gemstone: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {gemstones.map(gemstone => (
-                          <SelectItem key={gemstone} value={gemstone}>
-                            {gemstone.charAt(0).toUpperCase() + gemstone.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="ai_hint">AI Hint</Label>
-                  <Input
-                    id="ai_hint"
-                    value={formData.ai_hint}
-                    onChange={(e) => setFormData(prev => ({ ...prev, ai_hint: e.target.value }))}
-                    placeholder="e.g., gold necklace, silver earrings"
-                    required
-                  />
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="featured"
-                      checked={formData.is_featured}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_featured: checked }))}
-                    />
-                    <Label htmlFor="featured">Featured Product</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="in_stock"
-                      checked={formData.in_stock}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, in_stock: checked }))}
-                    />
-                    <Label htmlFor="in_stock">In Stock</Label>
-                  </div>
-                </div>
-
-                <Button type="submit" disabled={loading} className="w-full">
-                  {loading ? 'Saving...' : editingProduct ? 'Update Product' : 'Create Product'}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-          
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-6">
-        {products.length === 0 && !loading ? (
+        {/* Orders Management Tab */}
+        <TabsContent value="orders" className="space-y-6">
           <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-muted-foreground">No products found. Create your first product!</p>
+            <CardHeader>
+              <CardTitle>Orders Overview</CardTitle>
+              <CardDescription>
+                Manage customer orders and update their status
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {orders.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No orders found
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-mono text-sm">
+                          {String(order.id).slice(0, 8)}...
+                        </TableCell>
+                        <TableCell>{order.user_email}</TableCell>
+                        <TableCell>
+                          {new Date(order.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>₹{order.total_amount}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(order.status)}>
+                            {order.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateOrderStatus(order.id, 'processing')}
+                              disabled={order.status === 'processing'}
+                            >
+                              Process
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateOrderStatus(order.id, 'shipped')}
+                              disabled={order.status === 'shipped' || order.status === 'delivered'}
+                            >
+                              Ship
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateOrderStatus(order.id, 'delivered')}
+                              disabled={order.status === 'delivered'}
+                            >
+                              Deliver
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
-        ) : (
-          products.map((product) => (
-            <Card key={product.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      {product.name}
-                      {product.is_featured && <Badge variant="secondary">Featured</Badge>}
-                      {!product.in_stock && <Badge variant="destructive">Out of Stock</Badge>}
-                    </CardTitle>
-                    <CardDescription>${product.price.toFixed(2)}</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(product)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(product.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+        </TabsContent>
+
+        {/* Products Management Tab */}
+        <TabsContent value="products" className="space-y-6">
+          {/* Cloudinary Status */}
+          <CloudinaryStatus />
+          
+          {/* Add New Product */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Add New Product</CardTitle>
+              <CardDescription>
+                Add a new product to your jewelry collection
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Image Upload Section */}
+              <ImageUpload
+                value={newProduct.image_url}
+                onChange={(url) => setNewProduct({...newProduct, image_url: url})}
+                onRemove={() => setNewProduct({...newProduct, image_url: ''})}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="name">Product Name *</Label>
+                  <Input
+                    id="name"
+                    placeholder="Enter product name"
+                    value={newProduct.name}
+                    onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                  />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    {product.images[0] && (
-                      <div className="aspect-square relative overflow-hidden rounded-md">
-                        <Image
-                          src={product.images[0]}
-                          alt={product.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <p className="text-sm text-muted-foreground">{product.description}</p>
-                    <div className="flex gap-2">
-                      <Badge variant="outline">{product.material}</Badge>
-                      <Badge variant="outline">{product.gemstone}</Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      AI Hint: {product.ai_hint}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Created: {new Date(product.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
+                <div>
+                  <Label htmlFor="price">Price (₹) *</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    placeholder="Enter price"
+                    value={newProduct.price || ''}
+                    onChange={(e) => setNewProduct({...newProduct, price: Number(e.target.value)})}
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <Input
+                    id="category"
+                    placeholder="Enter category"
+                    value={newProduct.category}
+                    onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="material">Material</Label>
+                  <Input
+                    id="material"
+                    placeholder="e.g., gold, silver, rose-gold"
+                    value={newProduct.material}
+                    onChange={(e) => setNewProduct({...newProduct, material: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="gemstone">Gemstone</Label>
+                  <Input
+                    id="gemstone"
+                    placeholder="e.g., diamond, crystal, opal"
+                    value={newProduct.gemstone}
+                    onChange={(e) => setNewProduct({...newProduct, gemstone: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Enter product description"
+                  value={newProduct.description}
+                  onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                />
+              </div>
+              <Button onClick={addProduct} className="w-full">
+                Add Product
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Products List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Products List</CardTitle>
+              <CardDescription>
+                Manage your existing products
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Image</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Material</TableHead>
+                    <TableHead>Stock</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        <div className="relative w-12 h-12">
+                          <Image 
+                            src={product.image_url || 'https://placehold.co/600x600/f3f4f6/9ca3af?text=No+Image'} 
+                            alt={product.name}
+                            fill
+                            className="object-cover rounded"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>₹{product.price}</TableCell>
+                      <TableCell>{product.category}</TableCell>
+                      <TableCell>{product.material}</TableCell>
+                      <TableCell>
+                        <Badge variant={product.in_stock ? "default" : "secondary"}>
+                          {product.in_stock ? "In Stock" : "Out of Stock"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleProductStock(product.id)}
+                          >
+                            Toggle Stock
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => deleteProduct(product.id)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
-  );
+  )
 }

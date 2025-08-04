@@ -12,10 +12,42 @@ type ProductCardProps = {
   product: Product;
 };
 
+// Helper function to get a valid image URL
+function getValidImageUrl(imageUrl: string | undefined): string {
+  if (!imageUrl) return 'https://placehold.co/600x600/f3f4f6/9ca3af?text=No+Image';
+  
+  // Check if it's a valid URL from allowed domains
+  const allowedDomains = [
+    'placehold.co',
+    'images.unsplash.com',
+    'via.placeholder.com',
+    'picsum.photos',
+    'source.unsplash.com',
+    'res.cloudinary.com',
+    'cloudinary.com'
+  ];
+  
+  try {
+    const url = new URL(imageUrl);
+    // Check if hostname matches allowed domains or is a subdomain of cloudinary.com
+    if (allowedDomains.includes(url.hostname) || url.hostname.endsWith('.cloudinary.com')) {
+      return imageUrl;
+    }
+  } catch {
+    // Invalid URL
+  }
+  
+  // Return fallback image
+  return 'https://placehold.co/600x600/f3f4f6/9ca3af?text=Invalid+Image';
+}
+
 export function ProductCard({ product }: ProductCardProps) {
   const formatPrice = (price: number) => {
     return `$${price.toFixed(2)}`;
   };
+
+  const validImageUrl = getValidImageUrl(product.images?.[0]);
+  const validLargeImageUrl = validImageUrl.replace('600x600', '1200x1200');
 
   return (
     <div className="group relative bg-white rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300">
@@ -24,7 +56,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <DialogTrigger asChild>
           <div className="aspect-square w-full relative overflow-hidden cursor-zoom-in">
             <Image
-              src={product.images[0]}
+              src={validImageUrl}
               alt={product.name}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -50,7 +82,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <DialogContent className="max-w-3xl p-0">
            <DialogTitle className="sr-only">{product.name}</DialogTitle>
           <Image
-            src={product.images[0].replace('600x600', '1200x1200')}
+            src={validLargeImageUrl}
             alt={product.name}
             width={1200}
             height={1200}

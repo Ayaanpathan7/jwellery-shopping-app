@@ -1,3 +1,10 @@
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
 export type Product = {
   id: number;
   name: string;
@@ -5,12 +12,45 @@ export type Product = {
   price: number;
   images: string[];
   ai_hint: string;
-  material: 'gold' | 'silver' | 'rose-gold' | 'brass';
-  gemstone: 'diamond' | 'crystal' | 'opal' | 'labradorite' | 'moonstone' | 'onyx' | 'none';
+  material: string;
+  gemstone: string;
   is_featured: boolean;
   in_stock: boolean;
   created_at: string;
+  category?: string;
 };
+
+// Database product type (from Supabase)
+type DbProduct = {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  material: string;
+  gemstone: string;
+  in_stock: boolean;
+  created_at: string;
+  category: string;
+};
+
+// Convert database product to frontend product format
+function convertDbProductToProduct(dbProduct: DbProduct): Product {
+  return {
+    id: dbProduct.id,
+    name: dbProduct.name,
+    description: dbProduct.description || '',
+    price: dbProduct.price,
+    images: [dbProduct.image_url || 'https://placehold.co/600x600'],
+    ai_hint: `${dbProduct.material} ${dbProduct.category?.toLowerCase() || 'jewelry'}`,
+    material: dbProduct.material || 'gold',
+    gemstone: dbProduct.gemstone || 'none',
+    is_featured: Math.random() > 0.7, // Random featured status for now
+    in_stock: dbProduct.in_stock,
+    created_at: dbProduct.created_at,
+    category: dbProduct.category
+  };
+}
 
 // Fallback data for development
 export const fallbackProducts: Product[] = [
@@ -69,16 +109,22 @@ export const fallbackProducts: Product[] = [
 
 export async function getProducts(): Promise<Product[]> {
   try {
-    const response = await fetch('/api/products', {
-      cache: 'no-store',
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch products');
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase error fetching products:', error);
+      return fallbackProducts;
     }
-    
-    const products = await response.json();
-    return products;
+
+    if (!data || data.length === 0) {
+      console.log('No products found in database, using fallback');
+      return fallbackProducts;
+    }
+
+    return data.map(convertDbProductToProduct);
   } catch (error) {
     console.error('Error fetching products:', error);
     return fallbackProducts;
@@ -87,16 +133,22 @@ export async function getProducts(): Promise<Product[]> {
 
 export async function getProduct(id: string): Promise<Product | null> {
   try {
-    const response = await fetch(`/api/products/${id}`, {
-      cache: 'no-store',
-    });
-    
-    if (!response.ok) {
-      return null;
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', parseInt(id))
+      .single();
+
+    if (error) {
+      console.error('Supabase error fetching product:', error);
+      return fallbackProducts.find(p => p.id === parseInt(id)) || null;
     }
-    
-    const product = await response.json();
-    return product;
+
+    if (!data) {
+      return fallbackProducts.find(p => p.id === parseInt(id)) || null;
+    }
+
+    return convertDbProductToProduct(data);
   } catch (error) {
     console.error('Error fetching product:', error);
     return fallbackProducts.find(p => p.id === parseInt(id)) || null;
