@@ -5,6 +5,12 @@ import { fallbackProducts } from './products-api'
 
 export async function getProductsServer(): Promise<Product[]> {
   try {
+    // If no Supabase URL is configured, use fallback products
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co') {
+      console.log('Supabase not configured, using fallback products')
+      return fallbackProducts
+    }
+
     const supabase = await createClient()
     
     const { data: products, error } = await supabase
@@ -34,6 +40,12 @@ export async function getProductsServer(): Promise<Product[]> {
 
 export async function getProductServer(id: string): Promise<Product | null> {
   try {
+    // If no Supabase URL is configured, use fallback products
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co') {
+      console.log('Supabase not configured, using fallback product')
+      return fallbackProducts.find(p => p.id === parseInt(id)) || null
+    }
+
     const supabase = await createClient()
     
     const { data: product, error } = await supabase

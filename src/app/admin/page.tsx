@@ -18,10 +18,11 @@ import CloudinaryStatus from '@/components/cloudinary-status'
 import AdminAuth from '@/components/admin-auth'
 import { getValidImageUrl } from '@/lib/image-utils'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Handle missing environment variables during build
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 interface Order {
   id: string
