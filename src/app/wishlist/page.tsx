@@ -9,34 +9,17 @@ import { getProducts, type Product } from '@/lib/products-api';
 import { HeartCrack } from 'lucide-react';
 
 export default function WishlistPage() {
-  const { wishlist } = useWishlist();
+  const { items: wishlist } = useWishlist();
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setIsClient(true);
-    fetchWishlistItems();
+    // With cache-based wishlist, we already have the full Product objects
+    setWishlistItems(wishlist);
+    setLoading(false);
   }, [wishlist]);
-
-  const fetchWishlistItems = async () => {
-    if (wishlist.length === 0) {
-      setWishlistItems([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const allProducts = await getProducts();
-      const items = allProducts.filter((product) => wishlist.includes(product.id));
-      setWishlistItems(items);
-    } catch (error) {
-      console.error('Error fetching wishlist items:', error);
-      setWishlistItems([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!isClient || loading) {
     return (

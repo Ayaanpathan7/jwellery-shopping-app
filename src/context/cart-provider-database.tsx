@@ -31,7 +31,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [currentUserId, setCurrentUserId] = useState<string>('');
 
   // Generate storage key for user-specific cart
-  const getStorageKey = (userId: string) => `luna_gems_cart_${userId}`;
+  const getStorageKey = (userId: string) => `cart_${userId}`;
 
   // Load cart from localStorage
   const loadCartFromStorage = (userId: string): CartItem[] => {
@@ -84,89 +84,113 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, currentUserId, isLoading]);
 
-  const addToCart = (product: Product, quantity = 1) => {
+  const addToCart = async (product: Product, quantity = 1) => {
     try {
-      const existingItem = items.find(item => item.id === product.id.toString());
+      const success = await addToCartDB(currentUserId, product.id, quantity);
       
-      if (existingItem) {
-        setItems(items.map(item =>
-          item.id === product.id.toString()
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        ));
-      } else {
-        setItems([...items, { id: product.id.toString(), product, quantity }]);
-      }
+      if (success) {
+        const existingItem = items.find(item => item.id === product.id.toString());
+        
+        if (existingItem) {
+          setItems(items.map(item =>
+            item.id === product.id.toString()
+              ? { ...item, quantity: item.quantity + quantity }
+              : item
+          ));
+        } else {
+          setItems([...items, { id: product.id.toString(), product, quantity }]);
+        }
 
-      toast({
-        title: "Added to cart",
-        description: `${product.name} has been added to your cart.`,
-      });
+        toast({
+          title: "Added to cart",
+          description: `${product.name} has been added to your cart.`,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add item to cart. Please try again.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast({
         title: "Error",
-        description: "Failed to add item to cart.",
+        description: "Failed to add item to cart. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  const removeFromCart = (productId: string) => {
+  const removeFromCart = async (productId: string) => {
     try {
-      const item = items.find(item => item.id === productId);
-      setItems(items.filter(item => item.id !== productId));
+      const success = await removeFromCartDB(currentUserId, parseInt(productId));
       
-      if (item) {
+      if (success) {
+        const item = items.find(item => item.id === productId);
+        setItems(items.filter(item => item.id !== productId));
+        
+        if (item) {
+          toast({
+            title: "Removed from cart",
+            description: `${item.product.name} has been removed from your cart.`,
+          });
+        }
+      } else {
         toast({
-          title: "Removed from cart",
-          description: `${item.product.name} has been removed from your cart.`,
+          title: "Error",
+          description: "Failed to remove item from cart. Please try again.",
+          variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Error removing from cart:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove item from cart.",
-        variant: "destructive",
-      });
     }
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = async (productId: string, quantity: number) => {
     try {
-      if (quantity <= 0) {
-        removeFromCart(productId);
-        return;
+      const success = await updateCartQuantityDB(currentUserId, parseInt(productId), quantity);
+      
+      if (success) {
+        if (quantity <= 0) {
+          setItems(items.filter(item => item.id !== productId));
+        } else {
+          setItems(items.map(item =>
+            item.id === productId ? { ...item, quantity } : item
+          ));
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update quantity. Please try again.",
+          variant: "destructive",
+        });
       }
-
-      setItems(items.map(item =>
-        item.id === productId ? { ...item, quantity } : item
-      ));
     } catch (error) {
-      console.error('Error updating cart quantity:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update item quantity.",
-        variant: "destructive",
-      });
+      console.error('Error updating quantity:', error);
     }
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
     try {
-      setItems([]);
-      toast({
-        title: "Cart cleared",
-        description: "All items have been removed from your cart.",
-      });
+      const success = await clearCartDB(currentUserId);
+      
+      if (success) {
+        setItems([]);
+        toast({
+          title: "Cart cleared",
+          description: "All items have been removed from your cart.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to clear cart. Please try again.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Error clearing cart:', error);
-      toast({
-        title: "Error",
-        description: "Failed to clear cart.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -175,7 +199,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getTotalPrice = () => {
-    return items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+    return items.reduce((total, item) => {
+      return total + (item.product.price * item.quantity);
+    }, 0);
   };
 
   const isInCart = (productId: string) => {

@@ -11,8 +11,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Lock, LogOut, AlertTriangle } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import ImageUpload from '@/components/image-upload'
 import CloudinaryStatus from '@/components/cloudinary-status'
+import AdminAuth from '@/components/admin-auth'
+import { getValidImageUrl } from '@/lib/image-utils'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -42,6 +46,7 @@ interface Product {
 }
 
 export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [orders, setOrders] = useState<Order[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -58,9 +63,36 @@ export default function AdminPage() {
 
   // Load orders and products from database
   useEffect(() => {
-    loadOrders()
-    loadProducts()
+    // Check if user is already authenticated
+    const checkAuth = () => {
+      const isAuth = localStorage.getItem('admin_authenticated')
+      const authTime = localStorage.getItem('admin_auth_time')
+      
+      if (isAuth && authTime) {
+        // Check if authentication is still valid (24 hours)
+        const twentyFourHours = 24 * 60 * 60 * 1000
+        const now = Date.now()
+        const authTimestamp = parseInt(authTime)
+        
+        if (now - authTimestamp < twentyFourHours) {
+          setIsAuthenticated(true)
+        } else {
+          // Authentication expired
+          localStorage.removeItem('admin_authenticated')
+          localStorage.removeItem('admin_auth_time')
+        }
+      }
+    }
+
+    checkAuth()
   }, [])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadOrders()
+      loadProducts()
+    }
+  }, [isAuthenticated])
 
   const loadProducts = async () => {
     try {
@@ -214,6 +246,17 @@ export default function AdminPage() {
     }
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('admin_authenticated')
+    localStorage.removeItem('admin_auth_time')
+    setIsAuthenticated(false)
+  }
+
+  // Show authentication form if not authenticated
+  if (!isAuthenticated) {
+    return <AdminAuth onAuthenticated={() => setIsAuthenticated(true)} />
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -226,7 +269,17 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <Button
+          variant="outline"
+          onClick={handleLogout}
+          className="flex items-center space-x-2"
+        >
+          <Lock className="h-4 w-4" />
+          <span>Logout</span>
+        </Button>
+      </div>
       
       <Tabs defaultValue="orders" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
@@ -317,6 +370,18 @@ export default function AdminPage() {
         <TabsContent value="products" className="space-y-6">
           {/* Cloudinary Status */}
           <CloudinaryStatus />
+          
+          {/* Invalid Images Warning */}
+          {products.some(p => !getValidImageUrl(p.image_url).includes(p.image_url || '')) && (
+            <Alert className="border-yellow-200 bg-yellow-50">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Warning:</strong> Some products have invalid or blocked image URLs. 
+                They are being displayed with placeholder images. 
+                Please update them with valid image URLs or upload new images.
+              </AlertDescription>
+            </Alert>
+          )}
           
           {/* Add New Product */}
           <Card>
@@ -424,7 +489,7 @@ export default function AdminPage() {
                       <TableCell>
                         <div className="relative w-12 h-12">
                           <Image 
-                            src={product.image_url || 'https://placehold.co/600x600/f3f4f6/9ca3af?text=No+Image'} 
+                            src={getValidImageUrl(product.image_url)} 
                             alt={product.name}
                             fill
                             className="object-cover rounded"

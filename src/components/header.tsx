@@ -31,7 +31,7 @@ const navLinks = [
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { wishlist } = useWishlist();
+  const { items: wishlist } = useWishlist();
   const { getItemCount } = useCart();
   const [isSheetOpen, setSheetOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);

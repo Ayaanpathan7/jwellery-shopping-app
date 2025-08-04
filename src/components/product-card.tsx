@@ -75,7 +75,7 @@ export function ProductCard({ product }: ProductCardProps) {
             
             {/* Wishlist button overlay */}
             <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <WishlistButton productId={product.id} />
+              <WishlistButton product={product} />
             </div>
           </div>
         </DialogTrigger>

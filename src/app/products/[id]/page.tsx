@@ -101,7 +101,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </p>
             <div className="flex items-center gap-4">
               <AddToCartButton product={product} size="lg" />
-              <WishlistButton productId={product.id} />
+              <WishlistButton product={product} />
             </div>
             <div className="mt-8 border-t pt-6">
                 <h3 className="font-semibold text-primary-foreground mb-2">Product Details</h3>
