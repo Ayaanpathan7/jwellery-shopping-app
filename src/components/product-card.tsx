@@ -12,45 +12,36 @@ type ProductCardProps = {
   product: Product;
 };
 
-// Helper function to get a valid image URL
-function getValidImageUrl(imageUrl: string | undefined): string {
-  if (!imageUrl) return 'https://placehold.co/600x600/f3f4f6/9ca3af?text=No+Image';
-  
-  // Check if it's a valid URL from allowed domains
-  const allowedDomains = [
-    'placehold.co',
-    'images.unsplash.com',
-    'via.placeholder.com',
-    'picsum.photos',
-    'source.unsplash.com',
-    'res.cloudinary.com',
-    'cloudinary.com'
-  ];
-  
-  try {
-    const url = new URL(imageUrl);
-    // Check if hostname matches allowed domains or is a subdomain of cloudinary.com
-    if (allowedDomains.includes(url.hostname) || url.hostname.endsWith('.cloudinary.com')) {
+// Helper function to get a valid image URL from database
+function getValidImageUrl(product: Product): string {
+  // Use the first image from the database if available
+  if (product.images && product.images.length > 0 && product.images[0]) {
+    const imageUrl = product.images[0];
+    
+    // Check if it's a valid URL
+    try {
+      new URL(imageUrl);
       return imageUrl;
+    } catch {
+      // If not a valid URL, return placeholder
+      return 'https://placehold.co/600x600/f3f4f6/9ca3af?text=No+Image';
     }
-  } catch {
-    // Invalid URL
   }
   
-  // Return fallback image
-  return 'https://placehold.co/600x600/f3f4f6/9ca3af?text=Invalid+Image';
+  // Return placeholder if no images
+  return 'https://placehold.co/600x600/f3f4f6/9ca3af?text=No+Image';
 }
 
 export function ProductCard({ product }: ProductCardProps) {
   const formatPrice = (price: number) => {
-    return `$${price.toFixed(2)}`;
+    return `₹${price.toLocaleString()}`;
   };
 
-  const validImageUrl = getValidImageUrl(product.images?.[0]);
+  const validImageUrl = getValidImageUrl(product);
   const validLargeImageUrl = validImageUrl.replace('600x600', '1200x1200');
 
   return (
-    <div className="group relative bg-white rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+    <div className="group relative bg-white border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-lg">
       {/* Product Image */}
       <Dialog>
         <DialogTrigger asChild>
@@ -59,67 +50,61 @@ export function ProductCard({ product }: ProductCardProps) {
               src={validImageUrl}
               alt={product.name}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              data-ai-hint={product.ai_hint}
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
-            
-            {/* Overlay on hover */}
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             
             {/* Featured badge */}
             {product.is_featured && (
-              <Badge className="absolute top-3 left-3 bg-black text-white">
+              <Badge className="absolute top-3 left-3 bg-gray-900 text-white text-xs">
                 Featured
               </Badge>
             )}
             
             {/* Wishlist button overlay */}
-            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <WishlistButton product={product} />
             </div>
           </div>
         </DialogTrigger>
         <DialogContent className="max-w-3xl p-0">
-           <DialogTitle className="sr-only">{product.name}</DialogTitle>
+          <DialogTitle className="sr-only">{product.name}</DialogTitle>
           <Image
             src={validLargeImageUrl}
             alt={product.name}
             width={1200}
             height={1200}
             className="w-full h-auto"
-            data-ai-hint={product.ai_hint}
           />
         </DialogContent>
       </Dialog>
 
       {/* Product Info */}
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-2">
+      <div className="p-4">
+        <div className="mb-3">
           <Link href={`/products/${product.id}`} className="hover:text-gray-600 transition-colors">
-            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">{product.name}</h3>
+            <h3 className="font-medium text-gray-900 line-clamp-2">{product.name}</h3>
           </Link>
         </div>
         
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
         
-        {/* Material and Gemstone */}
-        <div className="flex gap-2 mb-4">
-          <Badge variant="secondary" className="text-xs capitalize">
-            {product.material}
-          </Badge>
-          {product.gemstone !== 'none' && (
-            <Badge variant="outline" className="text-xs capitalize">
-              {product.gemstone}
-            </Badge>
+        {/* Material */}
+        <div className="mb-3">
+          <span className="text-xs text-gray-500 uppercase tracking-wide">{product.material}</span>
+          {product.gemstone && product.gemstone !== 'none' && (
+            <span className="text-xs text-gray-500 ml-2">• {product.gemstone}</span>
           )}
         </div>
 
-        {/* Price and Stock */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-xl font-bold text-gray-900">
+        {/* Price and Actions */}
+        <div className="flex items-center justify-between">
+          <div className="text-lg font-semibold text-gray-900">
             {formatPrice(product.price)}
           </div>
-          <div className="text-sm text-gray-500">
+          
+          {/* Stock status */}
+          <div className="text-xs">
             {product.in_stock ? (
               <span className="text-green-600">In Stock</span>
             ) : (
@@ -128,14 +113,9 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <AddToCartButton product={product} size="sm" />
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/products/${product.id}`}>
-              View Details
-            </Link>
-          </Button>
+        {/* Add to Cart Button */}
+        <div className="mt-4">
+          <AddToCartButton product={product} />
         </div>
       </div>
     </div>

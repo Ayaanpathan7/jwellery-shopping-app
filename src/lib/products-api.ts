@@ -28,6 +28,7 @@ type DbProduct = {
   description: string;
   price: number;
   image_url: string;
+  image_urls?: string[]; // For multiple images
   material: string;
   gemstone: string;
   in_stock: boolean;
@@ -37,12 +38,29 @@ type DbProduct = {
 
 // Convert database product to frontend product format
 function convertDbProductToProduct(dbProduct: DbProduct): Product {
+  // Handle multiple images from database
+  let images: string[] = [];
+  
+  // If image_urls array exists, use it
+  if (dbProduct.image_urls && Array.isArray(dbProduct.image_urls) && dbProduct.image_urls.length > 0) {
+    images = dbProduct.image_urls.filter(url => url && url.trim() !== '');
+  }
+  // Otherwise, use single image_url if it exists
+  else if (dbProduct.image_url && dbProduct.image_url.trim() !== '') {
+    images = [dbProduct.image_url];
+  }
+  
+  // If no images, don't add placeholder - let the frontend handle it
+  if (images.length === 0) {
+    images = [];
+  }
+
   return {
     id: dbProduct.id,
     name: dbProduct.name,
     description: dbProduct.description || '',
     price: dbProduct.price,
-    images: [dbProduct.image_url || 'https://placehold.co/600x600'],
+    images: images,
     ai_hint: `${dbProduct.material} ${dbProduct.category?.toLowerCase() || 'jewelry'}`,
     material: dbProduct.material || 'gold',
     gemstone: dbProduct.gemstone || 'none',

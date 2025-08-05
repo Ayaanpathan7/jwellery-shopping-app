@@ -11,26 +11,37 @@ export default async function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative w-full h-[90vh] bg-gradient-to-r from-rose-50 to-orange-50 flex items-center">
-        <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section className="relative w-full h-[90vh] flex items-center overflow-hidden">
+        {/* Background Video */}
+        <video
+          src="/assets/videos/hero2.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        />
+        <div className="absolute inset-0 bg-black/40 z-10"></div>
+        
+        <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-20">
           {/* Left Content */}
           <div className="space-y-8">
             <div className="space-y-4">
-              <p className="text-sm font-medium tracking-[0.2em] text-gray-600 uppercase">
+              <p className="text-sm font-medium tracking-[0.2em] text-white/80 uppercase">
                 Limited Edition
               </p>
-              <h1 className="text-5xl md:text-7xl font-bold text-gray-900 leading-tight">
+              <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
                 LUXURY DESIGN<br />
                 <span className="text-4xl md:text-6xl">COLLECTIONS</span>
               </h1>
-              <p className="text-lg text-gray-600 max-w-md">
+              <p className="text-lg text-white/90 max-w-md">
                 Every gemstone has its own beauty and luxury stories, 
                 our designers create some outstanding jewelry design 
                 for you to look outstanding in any condition.
               </p>
             </div>
             
-            <Button asChild className="bg-black text-white px-8 py-6 text-base hover:bg-gray-800">
+            <Button asChild className="bg-white text-black px-8 py-6 text-base hover:bg-gray-100">
               <Link href="/gallery">
                 Explore More →
               </Link>
@@ -38,8 +49,8 @@ export default async function Home() {
 
             {/* Trust Indicators */}
             <div className="flex items-center space-x-8 pt-8">
-              <div className="text-xs text-gray-500">Our Trusted Partners:</div>
-              <div className="flex items-center space-x-4 text-gray-400">
+              <div className="text-xs text-white/60">Our Trusted Partners:</div>
+              <div className="flex items-center space-x-4 text-white/70">
                 <span className="font-medium">OpenGate</span>
                 <span className="font-medium">shopeey</span>
                 <span className="font-medium">bluemarket</span>
@@ -47,16 +58,17 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Right - Model Image */}
+          {/* Right - Hero Video */}
           <div className="relative h-full min-h-[600px]">
-            <Image
-              src="https://placehold.co/800x600/F5F5DC/8B4513?text=Luxury+Jewelry+Model"
-              alt="Elegant woman wearing luxury jewelry"
-              fill
-              style={{ objectFit: 'cover' }}
-              className="rounded-lg"
-              priority
+            <video
+              src="/assets/videos/hero_video.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover rounded-lg"
             />
+            <div className="absolute inset-0 bg-black/20 rounded-lg"></div>
           </div>
         </div>
       </section>
@@ -73,8 +85,8 @@ export default async function Home() {
             <div className="text-center group">
               <div className="relative w-full h-64 mb-6 overflow-hidden rounded-lg">
                 <Image
-                  src="https://placehold.co/400x300/D4AF37/FFFFFF?text=Premium+Quality+Guarantee"
-                  alt="Luxury guarantee"
+                  src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=300&fit=crop&q=80"
+                  alt="Luxury guarantee - Premium jewelry quality"
                   fill
                   style={{ objectFit: 'cover' }}
                   className="group-hover:scale-105 transition-transform duration-300"
@@ -94,8 +106,8 @@ export default async function Home() {
             <div className="text-center group">
               <div className="relative w-full h-64 mb-6 overflow-hidden rounded-lg">
                 <Image
-                  src="https://placehold.co/400x300/228B22/FFFFFF?text=80%25+Cashback+Offer"
-                  alt="Cashback offer"
+                  src="https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=400&h=300&fit=crop&q=80"
+                  alt="Cashback offer - Gold coins and jewelry"
                   fill
                   style={{ objectFit: 'cover' }}
                   className="group-hover:scale-105 transition-transform duration-300"
@@ -118,8 +130,8 @@ export default async function Home() {
             <div className="text-center group">
               <div className="relative w-full h-64 mb-6 overflow-hidden rounded-lg">
                 <Image
-                  src="https://placehold.co/400x300/4169E1/FFFFFF?text=Free+Worldwide+Delivery"
-                  alt="Free delivery"
+                  src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&q=80"
+                  alt="Free delivery - Luxury packaging and shipping"
                   fill
                   style={{ objectFit: 'cover' }}
                   className="group-hover:scale-105 transition-transform duration-300"
@@ -139,93 +151,34 @@ export default async function Home() {
       </section>
 
       {/* Jewelry Categories */}
-      <section className="py-20 bg-white">
+            {/* Clean Product Categories */}
+      <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <p className="text-sm font-medium tracking-[0.2em] text-gray-600 uppercase mb-2">Category</p>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">OUR JEWELRY CATEGORY</h2>
+            <h2 className="text-4xl font-light text-gray-900 mb-4">Our Collections</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Our as one of the professional agencies engaged in the largest jewelry sector in 
-              the world, we also offer several special categories for you.
+              Explore our carefully curated categories, each designed to celebrate different moments and styles.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Necklaces */}
-            <div className="group cursor-pointer">
-              <div className="relative h-64 lg:h-80 overflow-hidden rounded-lg mb-4">
-                <Image
-                  src="https://placehold.co/400x500/D4AF37/FFFFFF?text=Luxury+Necklaces"
-                  alt="Necklaces"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  className="group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
-                <div className="absolute bottom-4 left-4 bg-white/90 px-4 py-2 rounded">
-                  <h3 className="font-bold text-gray-900">Necklaces</h3>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Show actual product images if available, grouped by category */}
+            {featuredProducts.slice(0, 4).map((product, index) => (
+              <Link key={product.id} href={`/products/${product.id}`} className="group">
+                <div className="relative aspect-square overflow-hidden mb-4">
+                  <img
+                    src={product.images && product.images.length > 0 
+                      ? product.images[0] 
+                      : 'https://placehold.co/600x600/f3f4f6/9ca3af?text=No+Image'
+                    }
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
                 </div>
-              </div>
-            </div>
-
-            {/* Bracelets */}
-            <div className="group cursor-pointer">
-              <div className="relative h-64 lg:h-80 overflow-hidden rounded-lg mb-4">
-                <Image
-                  src="https://placehold.co/400x500/C0C0C0/000000?text=Silver+Bracelets"
-                  alt="Bracelets"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  className="group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
-                <div className="absolute bottom-4 left-4 bg-white/90 px-4 py-2 rounded">
-                  <h3 className="font-bold text-gray-900">Bracelets</h3>
-                </div>
-              </div>
-            </div>
-
-            {/* Rings */}
-            <div className="group cursor-pointer">
-              <div className="relative h-64 lg:h-80 overflow-hidden rounded-lg mb-4">
-                <Image
-                  src="https://placehold.co/400x500/FFD700/000000?text=Diamond+Rings"
-                  alt="Rings"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  className="group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
-                <div className="absolute bottom-4 left-4 bg-white/90 px-4 py-2 rounded">
-                  <h3 className="font-bold text-gray-900">Rings</h3>
-                </div>
-              </div>
-            </div>
-
-            {/* Earrings */}
-            <div className="group cursor-pointer">
-              <div className="relative h-64 lg:h-80 overflow-hidden rounded-lg mb-4">
-                <Image
-                  src="https://placehold.co/400x500/FF6347/FFFFFF?text=Rose+Gold+Earrings"
-                  alt="Earrings"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  className="group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
-                <div className="absolute bottom-4 left-4 bg-white/90 px-4 py-2 rounded">
-                  <h3 className="font-bold text-gray-900">Earrings</h3>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <Button asChild className="bg-black text-white hover:bg-gray-800 px-8 py-6">
-              <Link href="/gallery">
-                More Information →
+                <h3 className="text-lg font-medium text-gray-900 text-center">{product.name}</h3>
+                <p className="text-sm text-gray-500 text-center">From ₹{product.price.toLocaleString()}</p>
               </Link>
-            </Button>
+            ))}
           </div>
         </div>
       </section>
