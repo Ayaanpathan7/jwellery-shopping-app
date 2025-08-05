@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/button';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
+import { Product } from '@/lib/products-api';
 
 type WishlistButtonProps = {
-  productId: number;
+  product: Product;
 };
 
-export function WishlistButton({ productId }: WishlistButtonProps) {
-  const { addToWishlist, removeFromWishlist, isWishlisted } = useWishlist();
+export function WishlistButton({ product }: WishlistButtonProps) {
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [isClient, setIsClient] = useState(false);
   
   useEffect(() => {
@@ -21,18 +22,18 @@ export function WishlistButton({ productId }: WishlistButtonProps) {
   if (!isClient) {
     return (
       <Button variant="ghost" size="icon" disabled>
-        <Heart className="h-6 w-6" />
+        <Heart className="h-6 w-6" suppressHydrationWarning />
       </Button>
     );
   }
 
-  const inWishlist = isWishlisted(productId);
+  const inWishlist = isInWishlist(product.id.toString());
 
   const handleClick = () => {
     if (inWishlist) {
-      removeFromWishlist(productId);
+      removeFromWishlist(product.id.toString());
     } else {
-      addToWishlist(productId);
+      addToWishlist(product);
     }
   };
 
@@ -48,6 +49,7 @@ export function WishlistButton({ productId }: WishlistButtonProps) {
         className={cn('h-6 w-6 transition-all', {
           'fill-current': inWishlist,
         })}
+        suppressHydrationWarning
       />
     </Button>
   );

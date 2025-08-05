@@ -5,21 +5,23 @@ import Link from 'next/link';
 import { ProductCard } from '@/components/product-card';
 import { Button } from '@/components/ui/button';
 import { useWishlist } from '@/hooks/use-wishlist';
-import { products, type Product } from '@/lib/products';
+import { getProducts, type Product } from '@/lib/products-api';
 import { HeartCrack } from 'lucide-react';
 
 export default function WishlistPage() {
-  const { wishlist } = useWishlist();
+  const { items: wishlist } = useWishlist();
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setIsClient(true);
-    const items = products.filter((product) => wishlist.includes(product.id));
-    setWishlistItems(items);
+    // With cache-based wishlist, we already have the full Product objects
+    setWishlistItems(wishlist);
+    setLoading(false);
   }, [wishlist]);
 
-  if (!isClient) {
+  if (!isClient || loading) {
     return (
         <div className="container mx-auto px-4 py-16 md:py-24 text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground">

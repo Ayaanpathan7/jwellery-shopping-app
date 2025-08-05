@@ -4,9 +4,10 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { WishlistProvider } from '@/context/wishlist-provider';
+import { CartProvider } from '@/context/cart-provider';
 
 export const metadata: Metadata = {
-  title: 'Luna Gems',
+  title: 'Creations by Shubhi',
   description: 'Handcrafted Elegance for Every Moment.',
 };
 
@@ -25,14 +26,16 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased" suppressHydrationWarning={true}>
         <WishlistProvider>
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-grow">{children}</main>
-            <Footer />
-          </div>
-          <Toaster />
+          <CartProvider>
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+            </div>
+            <Toaster />
+          </CartProvider>
         </WishlistProvider>
       </body>
     </html>

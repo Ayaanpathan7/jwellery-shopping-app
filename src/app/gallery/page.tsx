@@ -1,18 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProductCard } from '@/components/product-card';
-import { products } from '@/lib/products';
+import { getProducts, type Product } from '@/lib/products-api';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 
 export default function GalleryPage() {
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [materialFilter, setMaterialFilter] = useState('all');
   const [gemstoneFilter, setGemstoneFilter] = useState('all');
   const [priceRange, setPriceRange] = useState([0, 300]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      const productData = await getProducts();
+      setProducts(productData);
+      setFilteredProducts(productData);
+      
+      // Update price range based on actual products
+      if (productData.length > 0) {
+        const maxPrice = Math.max(...productData.map(p => p.price));
+        setPriceRange([0, Math.ceil(maxPrice)]);
+      }
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const materials = ['all', ...Array.from(new Set(products.map(p => p.material)))];
   const gemstones = ['all', ...Array.from(new Set(products.map(p => p.gemstone)))];
@@ -28,99 +52,145 @@ export default function GalleryPage() {
       tempProducts = tempProducts.filter(p => p.gemstone === gemstoneFilter);
     }
 
-    tempProducts = tempProducts.filter(p => {
-      const price = parseFloat(p.price.replace('$', ''));
-      return price >= priceRange[0] && price <= priceRange[1];
-    });
+    // Filter by price range
+    tempProducts = tempProducts.filter(p => 
+      p.price >= priceRange[0] && p.price <= priceRange[1]
+    );
 
     setFilteredProducts(tempProducts);
   };
-  
-  const resetFilters = () => {
+
+  useEffect(() => {
+    handleFilterChange();
+  }, [materialFilter, gemstoneFilter, priceRange, products]);
+
+  const handleClearFilters = () => {
     setMaterialFilter('all');
     setGemstoneFilter('all');
-    setPriceRange([0, 300]);
-    setFilteredProducts(products);
+    if (products.length > 0) {
+      const maxPrice = Math.max(...products.map(p => p.price));
+      setPriceRange([0, Math.ceil(maxPrice)]);
+    }
   };
 
-  // Apply filters whenever a filter state changes
-  useState(() => {
-    handleFilterChange();
-  });
-
+  if (loading) {
+    return (
+      <div className="bg-background">
+        <div className="container mx-auto px-4 py-16 md:py-24">
+          <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary-foreground mb-12 text-center">
+            Shop All
+          </h1>
+          <div className="flex justify-center">
+            <div className="text-center">
+              <p className="text-muted-foreground">Loading products...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background">
       <div className="container mx-auto px-4 py-16 md:py-24">
-        <div className="text-center mb-12">
-          <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary-foreground">
-            Shop Our Collections
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover our handcrafted treasures, designed to add a touch of elegance to every moment.
-          </p>
+        <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary-foreground mb-12 text-center">
+          Shop All
+        </h1>
+
+        {/* Filters */}
+        <div className="mb-8 p-6 bg-card rounded-lg shadow-sm">
+          <h2 className="text-lg font-semibold mb-4">Filter Products</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Material</label>
+              <Select value={materialFilter} onValueChange={setMaterialFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select material" />
+                </SelectTrigger>
+                <SelectContent>
+                  {materials.map(material => (
+                    <SelectItem key={material} value={material}>
+                      {material === 'all' ? 'All Materials' : material.charAt(0).toUpperCase() + material.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Gemstone</label>
+              <Select value={gemstoneFilter} onValueChange={setGemstoneFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select gemstone" />
+                </SelectTrigger>
+                <SelectContent>
+                  {gemstones.map(gemstone => (
+                    <SelectItem key={gemstone} value={gemstone}>
+                      {gemstone === 'all' ? 'All Gemstones' : gemstone.charAt(0).toUpperCase() + gemstone.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Price Range: ${priceRange[0]} - ${priceRange[1]}
+              </label>
+              <Slider
+                value={priceRange}
+                onValueChange={setPriceRange}
+                max={products.length > 0 ? Math.max(...products.map(p => p.price)) : 300}
+                min={0}
+                step={10}
+                className="mt-2"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleClearFilters}
+              size="sm"
+            >
+              Clear Filters
+            </Button>
+            <span className="text-sm text-muted-foreground self-center">
+              Showing {filteredProducts.length} of {products.length} products
+            </span>
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-8">
-            <aside className="md:col-span-1 bg-card p-6 rounded-lg shadow-sm h-fit">
-              <h3 className="text-xl font-semibold mb-6">Filters</h3>
-              <div className="space-y-6">
-                <div>
-                  <label className="text-sm font-medium">Material</label>
-                  <Select value={materialFilter} onValueChange={setMaterialFilter}>
-                    <SelectTrigger className="w-full mt-2">
-                      <SelectValue placeholder="Select Material" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {materials.map(m => <SelectItem key={m} value={m} className="capitalize">{m}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                 <div>
-                  <label className="text-sm font-medium">Gemstone</label>
-                   <Select value={gemstoneFilter} onValueChange={setGemstoneFilter}>
-                    <SelectTrigger className="w-full mt-2">
-                      <SelectValue placeholder="Select Gemstone" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {gemstones.map(g => <SelectItem key={g} value={g} className="capitalize">{g}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                    <label className="text-sm font-medium">Price Range</label>
-                    <div className="mt-3 flex items-center gap-4">
-                        <span className="text-muted-foreground">${priceRange[0]}</span>
-                        <Slider
-                            min={0}
-                            max={300}
-                            step={10}
-                            value={[priceRange[1]]}
-                            onValueChange={(value) => setPriceRange([priceRange[0], value[0]])}
-                        />
-                         <span className="text-muted-foreground">${priceRange[1]}</span>
-                    </div>
-                </div>
-                <Button onClick={handleFilterChange} className="w-full">Apply Filters</Button>
-                <Button onClick={resetFilters} variant="outline" className="w-full">Reset Filters</Button>
-              </div>
-            </aside>
-            <main className="md:col-span-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map((product) => (
-                    <Link key={product.id} href={`/products/${product.id}`}>
-                        <ProductCard product={product} />
-                    </Link>
-                  ))
-                ) : (
-                    <div className="col-span-full text-center py-16">
-                        <h3 className="text-2xl font-semibold text-primary-foreground">No Products Found</h3>
-                        <p className="text-muted-foreground mt-2">Try adjusting your filters.</p>
-                    </div>
-                )}
-              </div>
-            </main>
+        {/* Products Grid */}
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground text-lg mb-4">
+              No products found matching your criteria.
+            </p>
+            <Button variant="outline" onClick={handleClearFilters}>
+              Clear Filters
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
+
+        {/* Contact CTA */}
+        <div className="mt-16 text-center">
+          <h2 className="font-headline text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
+            Have Questions?
+          </h2>
+          <p className="text-muted-foreground font-body mb-6">
+            Our team is here to help you find the perfect piece.
+          </p>
+          <Button asChild variant="outline">
+            <Link href="/contact">Get in Touch</Link>
+          </Button>
         </div>
       </div>
     </div>
